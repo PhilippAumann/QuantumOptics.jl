@@ -1,4 +1,5 @@
-using ..ode_dopri
+# using ..ode_dopri
+using OrdinaryDiffEq, DiffEqBase
 
 function recast! end
 
@@ -17,7 +18,11 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
         recast!(x, state)
         fout(t, state)
     end
-    ode(df_, tspan, x0, fout_; kwargs...)
+    prob = ODEProblem(df_, x0, (tspan[1], tspan[end]))
+    sol = solve(prob, Tsit5(), dense=false, abstol=1e-8, reltol=1e-6)
+    # sol = solve(prob, Tsit5(), kwargs=kwargs...)
+    # Save only on points in tspan by calling fout_ ??
+    # (sol.t, sol.u) ??
 end
 
 function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex128},
