@@ -14,12 +14,15 @@ function integrate{T}(tspan::Vector{Float64}, df::Function, x0::Vector{Complex12
         df(t, state, dstate)
         recast!(dstate, dx)
     end
-    function fout_(t::Float64, x::Vector{Complex128})
+    function fout_(integrator)
+        t = integrator.t
+        x = integrator.u
         recast!(x, state)
         fout(t, state)
     end
+    cb = DiscreteCallback((t, u, integrator)->true, fout_; save_positions=(false, false))
     prob = ODEProblem(df_, x0, (tspan[1], tspan[end]))
-    sol = solve(prob, Tsit5(), dense=false, abstol=1e-8, reltol=1e-6)
+    sol = solve(prob, Tsit5(), callback=cb, saveat=tspan, dense=false, abstol=1e-8, reltol=1e-6)
     # sol = solve(prob, Tsit5(), kwargs=kwargs...)
     # Save only on points in tspan by calling fout_ ??
     # (sol.t, sol.u) ??
